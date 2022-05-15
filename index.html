@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PONG</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        canvas {
+            background: red;
+        }
+        .stats {
+            font-family: 'Fira Code', monospace;
+            position: absolute;
+            width: 150px;
+            color: white;
+            background-color: rgba(0,0,0,0.3);
+            backdrop-filter: blur(3px);
+            top: 0;
+            left: 0;
+            margin: 15px;
+
+            display: flex;
+            flex-direction: column;
+            padding: 10px 15px;
+        }
+
+        .stats > * {
+            display: flex;
+            flex-direction: row;
+        }
+
+        .stats > * > .value {
+            font-family: 'Fira Code', monospace;
+            width: 80%;
+        }
+
+        .stats > * > .unit {
+            width: 20%;
+            font-weight: bold;
+        }
+
+        .stats > .controls > button {
+            font-family: 'Fira Code', monospace;
+            width: 50%;
+            background-color: rgba(0,0,255, 0.7);
+            border: none;
+            margin: 2px;
+            height: 30px;
+            color: white;
+            font-weight: bold;
+
+            transition: background-color 0.2s ease-in-out;
+            cursor: pointer;
+
+            border-radius: 5px;
+        }
+
+        .stats > .controls > button:hover {
+            background-color: rgba(0,0,255, 0.5);
+
+        }
+    </style>
+</head>
+<body>
+    <div class="stats">
+        <div class="time">
+            <div class="value">0.00</div>
+            <div class="unit">s</div>
+        </div>
+        <div class="fps">
+            <div class="value">0.00</div>
+            <div class="unit">FPS</div>
+        </div>
+        <div class="controls">
+            <button class="start"> Start</button>
+            <button class="stop">Stop</button>
+        </div>
+    </div>
+    <canvas width="1920" height="1080"></canvas>
+    <script src="./main.js"></script>
+    <script>
+        var canvas = document.querySelector('canvas');
+
+        const E = new Engine({element: "canvas", stats: ".stats"});
+
+    </script>
+</body>
+</html>
