@@ -349,7 +349,93 @@ class Vector extends Array {
         return this.scale(1 / this.magnitude());
     }
 
-    [Symbol.iterator]() {
-        return this;
+    array() {
+        return super.slice();
     }
+}
+
+class Matrix {
+    #elements;
+
+    constructor(...els) {
+        this.#elements = els;
+    }
+    
+    rows() {
+        return this.#elements.length;
+    }
+
+    columns() {
+        return this.#elements[0].length;
+    }
+
+    row(i) {
+        return this.#elements[i];
+    }
+
+    column(i) {
+        return this.#elements.map(e => e[i]);
+    }
+
+    isDimension(r, c) {
+        return this.rows() === r && this.columns() === c;
+    }
+
+    get(r, c) {
+        return this.#elements[r][c];
+    }
+
+    inverse() {
+        if (this.isDimension(2,2)) {
+            return new Matrix([this.get(1,1), -this.get(0,1)], [-this.get(1,0), this.get(0,0)]).scale(1 / this.det());
+        }
+    }
+
+    det() {
+        if (this.isDimension(2,2)) {
+            return this.get(0,0) * this.get(1,1) - this.get(0,1) * this.get(1,0);
+        }
+    }
+    
+    scale(lambda) {
+        return this.op(e => e * lambda);
+    }
+
+    each(func) {
+        return new Matrix(...this.#elements.map((r, iR) => r.map((el, iC) => func(el, [iR, iC]))));
+    }
+
+    transpose() {
+        return Array(this.rows()).fill().map((_, i) => this.column(i));
+    }
+
+    multiply(B) {
+        let colsB = B.transpose();
+
+        console.log(colsB)
+
+        return new Matrix(
+            ...colsB.map(
+                col => col.map(
+                    (m, colI) =>
+                        this.column(colI)
+                            .map(e => e * m)
+                ).reduce(
+                    (a, b) => 
+                        a.map((e, i) => e + b[i])
+                )
+            )
+        );
+    }
+
+    contents() {
+        return this.#elements;
+    }
+}
+
+Matrix.rotation = function(theta) {
+    return new Matrix(
+        [Math.cos(theta), -Math.sin(theta)],
+        [Math.sin(theta), Math.cos(theta)]
+    );
 }
