@@ -1,5 +1,6 @@
 const SCALE = 5;
 let E_WALL = 1;
+let E_COLLISIONS = 1;
 class Engine {
     /** @type {HTMLCanvasElement} */
     #canvas;
@@ -73,11 +74,19 @@ class Engine {
         this.#t = (Date.now() - this.#start) / 1_000;
         this.#deltaT = this.#t - oldT;
 
+        let handled = [];
+
         // Update stats
         this.updateStats();
         
+        this.#elements.forEach((b1, i1) => 
+            this.#elements.forEach((b2, i2) => 
+                this.collision([b1, i1], [b2, i2], handled)
+            )
+        );
         // Check for collisions
         this.#elements.forEach(b => this.wallCollision(b))
+
 
         // Update Position of elements
         this.#elements.forEach(b => b.tickPosition(this.#deltaT));
@@ -86,10 +95,63 @@ class Engine {
         this.#elements.forEach(b => b.draw(this));
     }
 
+
+    /**
+     * 
+     * @param {[Body, number]} arg1 
+     * @param {[Body, number]} param1 
+     * @returns 
+     */
+    collision([b1, i1], [b2, i2], handled) {
+        if (b1 === b2) return;
+        if (handled[i1]) return;
+
+        let distance = b1.closestDistance(b2.position);
+
+        if(b1 instanceof Circle && b2 instanceof Circle) {
+            if(distance <= (b1.radius + b2.radius)) {
+                if ( handled.filter(([a, b]) => (a === i1 && b == i1) || (a === i2 && b === i2)).length > 0 ) {
+                    return;
+                }
+                // Do collision stuff.
+
+                let lineOfCentres = new Vector(...b2.position).sub(new Vector(...b1.position)).unit();
+                let perpendicular = new Vector(lineOfCentres[1], -lineOfCentres[0]);
+
+
+                let perpVelocities = [new Vector(...b1.velocity).dot(perpendicular), new Vector(...b2.velocity).dot(perpendicular)];
+                let parallelVelocities = [new Vector(...b1.velocity).dot(lineOfCentres), new Vector(...b2.velocity).dot(lineOfCentres)];
+
+                // done some algebra:
+
+                // Do the velocity parallel to the line of centres
+
+                let u = parallelVelocities;
+
+                let e = E_COLLISIONS;
+                let v = [
+                    (u[1] - e * u[0])/2 + (b1.mass * u[0]) / (2 * b2.mass),
+                    (e * u[0] + u[1] * (1 - e ) ) / 2 + (b1.mass * u[0]) / (2 * b2.mass)
+                ];
+
+                let finalVelocities = [
+                    new Vector(...lineOfCentres).scale(v[0]).add(new Vector(...perpendicular).scale(perpVelocities[0])),
+                    new Vector(...lineOfCentres).scale(v[1]).add(new Vector(...perpendicular).scale(perpVelocities[1])),
+                ];
+
+                b1.velocity = [...finalVelocities[0]];
+                b2.velocity = [...finalVelocities[1]];
+
+                handled.push([i1, i2]);
+
+            }
+        }
+    }
+
     
     update() {
         this.draw();
-        this.#animationHandle = requestAnimationFrame(() => this.update());
+        this.#animationHandle = setTimeout(() => this.update(), 1000 / 144);
     }
 
     updateStats() {
@@ -179,9 +241,20 @@ class Body {
     /** @type {[number, number]} */
     #acceleration;
 
+    /** @type {number} */
+    #mass;
+
     draw() {
         console.error("Unimplemented!");
     }
+
+    get mass() {
+        return this.#mass;
+    }
+
+    set mass(m) {
+        this.#mass = m;
+    } 
 
     get position() {
         return this.#position;
@@ -236,11 +309,12 @@ class Circle extends Body {
     /** @type {number} */
     #radius;
 
-    constructor({position: p, radius: r, velocity: v, acceleration: a}) {
+    constructor({position: p, radius: r, velocity: v, acceleration: a, mass: m}) {
         super();
         super.position = p ?? [0, 0];
         super.acceleration = a ?? [0, 0];
         super.velocity = v ?? [0, 0];
+        super.mass = m ?? 1;
         this.#radius = r;
     }
 
