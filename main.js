@@ -65,6 +65,10 @@ class Engine {
 
         this.#stats.querySelector(".controls .start").addEventListener("click", e => this.start());
         this.#stats.querySelector(".controls .stop").addEventListener("click", e => this.stop());
+        this.#stats.querySelector(".controls .add").addEventListener("click", e => {
+            let c2 = new Circle({position: [1, 5], acceleration: [0, -9.81], velocity: [10,1], radius: 0.2 / (2 **0.5), mass: 1});
+            E.add(c2);
+        });
     }
 
     draw() {
